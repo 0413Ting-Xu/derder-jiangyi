@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>德德講義</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#11141d; --s1:#1a1f2e; --s2:#232a3b; --s3:#2c3446;
+  --line:#333c52; --line2:#455170;
+  --tx:#e9ecf4; --tx2:#9aa3bb; --tx3:#6b748d;
+  --gold:#e0a82e; --loss:#d9584e;
+  --star:#d6e0ee; --star0:#39425a;
+  --r:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html.vwopen,html.vwopen body{overflow:hidden}
+body{background:var(--ink);color:var(--tx);font-family:'Noto Sans TC',system-ui,sans-serif;font-size:16px;line-height:1.6;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit}
+.num{font-family:'Rubik','Noto Sans TC',sans-serif;font-weight:500;font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
+h1{font-family:'Rubik','Noto Sans TC',sans-serif;font-size:24px;font-weight:700;letter-spacing:.04em}
+
+/* 日期（10/30 他選丙：箭頭＋點開月曆；網站留 28 天，一排滑會太長） */
+.days{margin:14px 0 4px;max-width:420px}
+.dbar{display:flex;gap:6px}
+.darr{flex:0 0 44px;background:var(--s1);border:1px solid var(--line);border-radius:8px;color:var(--tx2);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.darr:disabled{opacity:.35;cursor:default}
+.darr svg{width:7px;height:12px}
+.dmid{flex:1;background:var(--s1);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-family:'Rubik','Noto Sans TC',sans-serif;font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer}
+.dmid svg{width:10px;height:6px;color:var(--tx2);transition:transform .2s}
+.dmid.open svg{transform:rotate(180deg)}
+.dcal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:8px;background:var(--s1);border:1px solid var(--line);border-radius:10px;padding:8px}
+.dcal span{text-align:center;font-size:12px;color:var(--tx3);padding:2px 0}
+.dcal button{background:none;border:1px solid transparent;border-radius:7px;color:var(--tx);font-family:'Rubik',sans-serif;font-size:14px;padding:6px 0;cursor:pointer}
+.dcal button:disabled{color:var(--tx3);opacity:.45;cursor:default}
+.dcal button.on{background:var(--s3);border-color:var(--line2)}
+
+/* 丙 滿版戰報（他 10/29 從四種裡挑的）：帳號＝大字＋整條帳號色底線（往下滑黏在上面）；圖撐滿整張卡、字壓在圖下緣；
+   卡片底一條帳號色；沒三＝圖下緣那塊轉暗紅。金色只給名次 */
+.acc{margin-top:30px}
+.ah{position:sticky;top:0;z-index:5;display:flex;align-items:flex-end;gap:12px;padding:12px 2px 10px;margin-bottom:16px;
+  background:var(--ink);border-bottom:4px solid var(--ac)}
+.ah .an{font-size:27px;font-weight:700;letter-spacing:.04em;color:#fff;line-height:1.2}
+.ah .rk{margin-left:auto;color:var(--tx);font-size:15px;white-space:nowrap}   /* 10/30 他：跟 DC、統計頁一樣「#563」白字 */
+.ah .rk b{font-family:'Rubik',sans-serif;font-weight:600;font-size:20px;margin:0 0 0 1px}
+
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}   /* minmax(0,…)：全形字的長名字不會把卡片撐寬 */
+@media(min-width:720px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1080px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+.card{position:relative;display:grid;border-radius:14px;overflow:hidden;background:#0b0e14;
+  box-shadow:0 0 0 1px rgba(255,255,255,.07),0 20px 34px -16px rgba(0,0,0,.95)}
+.card.hit{box-shadow:0 0 0 3px #e9ecf4,0 20px 34px -16px rgba(0,0,0,.95)}   /* 從統計頁點過來的那張（10/29） */
+.card::after{content:'';position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--ac);z-index:2}
+.pic{grid-area:1/1;display:block;width:100%;aspect-ratio:4/3;border:0;padding:0;overflow:hidden;background:var(--s2);cursor:zoom-in}
+.pic img{display:block;width:100%;height:100%;object-fit:cover}
+.none{grid-area:1/1;display:flex;align-items:center;justify-content:center;aspect-ratio:4/3;background:var(--s2);color:var(--tx3);font-size:14px}
+.who{grid-area:1/1;align-self:end;z-index:1;pointer-events:none;display:flex;align-items:center;gap:8px;padding:40px 12px 12px;
+  background:linear-gradient(180deg,transparent 0,rgba(8,10,16,.82) 42%,rgba(8,10,16,.95) 100%)}
+.miss .who{background:linear-gradient(180deg,transparent 0,rgba(78,14,14,.80) 42%,rgba(62,10,10,.95) 100%)}   /* 老師沒打出三星的場（重點看） */
+.who .nm{flex:1;min-width:0;font-size:17px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 3px #000}
+.who .n{color:#aab2c6;font-size:13px;white-space:nowrap}
+.acts{grid-area:2/1;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.6fr);gap:6px;padding:10px 10px 14px}   /* 10/29 儲存拿掉：四欄改三欄（複製陣圖／稽查／看老師實戰） */
+/* 三顆按鈕：D1 細框（10/29 深夜他從比較頁選的）：深色玻璃底＋上亮下暗的銀色細框，底下透一點冷光；按下去往下 1px、框變暗 */
+.acts .go{margin:0;text-align:center;padding:7px 0;border-radius:9px;border:1px solid transparent;color:#e6eaf2;letter-spacing:.03em;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02)) padding-box,linear-gradient(#0f131d,#0f131d) padding-box,
+    linear-gradient(180deg,#a9b2c8,#555f7c 55%,#2a3148) border-box;
+  box-shadow:0 0 0 1px rgba(0,0,0,.6),0 7px 14px -7px rgba(170,190,230,.22),inset 0 1px 0 rgba(255,255,255,.08);
+  -webkit-tap-highlight-color:transparent;transition:transform .06s,box-shadow .06s,background .06s}
+.acts .go:active{transform:translateY(1px);
+  background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.07)) padding-box,linear-gradient(#0f131d,#0f131d) padding-box,
+    linear-gradient(180deg,#78829b,#3a4462) border-box;box-shadow:0 0 0 1px rgba(0,0,0,.6)}
+.st{color:var(--star0);letter-spacing:1px;font-size:16px}
+.st b{color:var(--star);font-weight:400}
+.miss .st b{color:#ffb4a8}
+.pct{color:var(--tx2);font-size:15px}
+.go{margin-left:auto;color:var(--tx);text-decoration:none;font-size:14px;white-space:nowrap;padding:4px 11px;border-radius:8px;cursor:pointer;
+  background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.24)}
+.go:active{transform:translateY(1px)}
+.empty{margin-top:30px;color:var(--tx3);text-align:center}
+
+/* 看圖（他 10/28：手機點進去不滿版）：整個畫面黑底、圖撐滿、兩指放大、點兩下放大 */
+.vw{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;background:#05070c;overscroll-behavior:contain;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.vw[hidden]{display:none}
+.vx{position:absolute;z-index:2;top:calc(env(safe-area-inset-top) + 6px);right:calc(env(safe-area-inset-right) + 6px);border-radius:50%;background:rgba(0,0,0,.45)}
+.vx{width:44px;height:44px;border:0;background:none;color:var(--tx);font-size:30px;line-height:1;cursor:pointer}
+.vstage{flex:1;position:relative;overflow:hidden;touch-action:none}
+.vstage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform-origin:50% 50%;user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
+
+/* 老師說這題會考（10/30）：上面兩個分頁切換 */
+.mode{display:flex;gap:6px;margin-top:14px;max-width:420px}
+.mode button{flex:1;background:var(--s1);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--tx2);font-weight:700;font-size:15px;cursor:pointer;white-space:nowrap}
+.mode button.on{background:var(--s3);border-color:var(--line2);color:var(--tx)}
+
+/* ===== 重複出現的陣：四種版型的框（10/30 他定的）
+   沒重複＝不加框；2 次＝飛龍聯賽、3～4 次＝雷龍聯賽、5 次以上＝傳奇聯賽（字列最前面加「必考」，白字）。
+   框＝丙一 輕量浮雕：他從 原版／細線精品／光暈／浮雕厚框／名牌 選浮雕，嫌「太單調笨重」再從三種優化選這個。
+   6px 多層金屬（上緣一道窄反光）、照片外一道暗溝＋亮線、四角 L 形護角；徽章掛在框上緣正中間（他：不要左上角、不要圓座）。
+   每一級的顏色從徽章量的主色；不要炫彩、玻璃、會轉的（他 10/30 拿掉的）。徽章是官方圖整張縮小（粉絲內容政策：不裁切、不調色、不疊字） ===== */
+.card{display:block;padding:6px;border-radius:16px;background:#121722;overflow:visible}
+.card::after{display:none}
+.in{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr);border-radius:11px;overflow:hidden;background:#0b0e14}   /* minmax(0,…)：長名字、emoji 不會把卡片撐寬 */
+.pic{position:relative}
+.pic::after{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.5),inset 0 2px 10px rgba(0,0,0,.55)}
+.emb{position:absolute;z-index:4;top:calc(var(--es,56px) * -.38);left:50%;width:var(--es,56px);height:auto;margin-left:calc(var(--es,56px) / -2);pointer-events:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.85))}
+.grid{row-gap:30px}
+.acc .grid{padding-top:8px}
+
+/* 沒重複：不加框，跟一般卡片一樣乾淨，有框的才跳得出來 */
+.lv0{padding:0;background:#0b0e14;box-shadow:0 0 0 1px rgba(255,255,255,.07),0 20px 34px -16px rgba(0,0,0,.95)}
+.lv0 .in{border-radius:16px}
+
+/* 每一級的配色（徽章主色）：L 亮、M 主色、D 深、X 最深、acc 次深、ln 亮線、gl 光暈 */
+.lv1{--L:#e6dbf7;--M:#9c86d5;--D:#432a6e;--X:#140d22;--acc:#654ea0;--ln:#c7b1e4;--gl:rgba(156,134,213,.5)}
+.lv2{--L:#eaf6fb;--M:#76a6b7;--D:#1a586f;--X:#071e28;--acc:#3d84a1;--ln:#b0d7e4;--gl:rgba(120,200,225,.55)}
+.lv3{--L:#f6caa0;--M:#d57544;--D:#7e2608;--X:#2a0f06;--acc:#b54c1d;--ln:#e79a68;--gl:rgba(213,117,68,.6)}
+
+/* 輕量浮雕（預覽時的代號 v5） */
+.lv1,.lv2,.lv3{border-radius:12px;border:0;padding:6px;
+  background:
+    linear-gradient(var(--L),var(--L)) left 3px top 3px/13px 2px no-repeat,linear-gradient(var(--L),var(--L)) left 3px top 3px/2px 13px no-repeat,
+    linear-gradient(var(--L),var(--L)) right 3px top 3px/13px 2px no-repeat,linear-gradient(var(--L),var(--L)) right 3px top 3px/2px 13px no-repeat,
+    linear-gradient(var(--L),var(--L)) left 3px bottom 3px/13px 2px no-repeat,linear-gradient(var(--L),var(--L)) left 3px bottom 3px/2px 13px no-repeat,
+    linear-gradient(var(--L),var(--L)) right 3px bottom 3px/13px 2px no-repeat,linear-gradient(var(--L),var(--L)) right 3px bottom 3px/2px 13px no-repeat,
+    linear-gradient(180deg,rgba(255,255,255,.32),rgba(255,255,255,0) 10%),
+    linear-gradient(180deg,var(--M) 0%,var(--acc) 30%,var(--D) 68%,var(--X) 100%);
+  box-shadow:inset 0 1px 0 var(--L),inset 0 -1px 0 rgba(0,0,0,.7),0 0 0 1px rgba(0,0,0,.85),0 0 16px -6px var(--gl),0 14px 26px -14px rgba(0,0,0,.95)}
+.lv1 .in,.lv2 .in,.lv3 .in{border-radius:7px;box-shadow:0 0 0 1px rgba(0,0,0,.95),0 0 0 2px var(--X),0 0 0 3px var(--ln)}
+
+/* 必考（10/30 他：不要黑字，先試白色） */
+.tagB{flex:0 0 auto;padding:1px 7px;border-radius:5px;background:linear-gradient(180deg,#d57544,#9c3412);border:1px solid #f0a978;color:#fff;
+  font-size:12px;font-weight:800;letter-spacing:.12em;line-height:1.45;text-shadow:0 1px 1px rgba(0,0,0,.45);box-shadow:0 0 10px rgba(213,117,68,.5)}
+.gh .tagB{align-self:center;margin-right:2px}
+
+/* 曾經必考（10/30 晚上他選甲 冷卻銘牌）：跟「必考」同一塊牌子，熄火的深色金屬＋傳奇銅色細框、銅色字 */
+.tagK{flex:0 0 auto;align-self:center;padding:1px 7px;border-radius:5px;border:1px solid transparent;color:#f0b48a;
+  font-size:12px;font-weight:700;letter-spacing:.12em;line-height:1.45;white-space:nowrap;text-shadow:0 -1px 0 rgba(0,0,0,.7);
+  background:linear-gradient(180deg,#3b2b25,#1b1210) padding-box,linear-gradient(180deg,#e79a68,#7e2608) border-box;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 3px rgba(0,0,0,.6)}
+.gh .tagK{margin-right:2px}
+/* 會考頁小圖：7 天以前的那幾次淡一點（次數只算最近 7 天） */
+.oc.old{opacity:.42}
+
+/* 問號說明（照統計頁：圓形小問號，點了才出現，點說明本身也收起來） */
+.mode .qhelp{flex:none;align-self:center;width:28px;height:28px;padding:0;border-radius:50%;font-size:14px;line-height:26px;text-align:center;
+  color:var(--tx2);border:1px solid var(--line2);background:transparent;font-weight:500}
+.mode .qhelp.on{color:var(--tx);background:rgba(142,156,230,.15);border-color:rgba(142,156,230,.45)}
+.qbox{max-width:420px;margin:10px 0 0;padding:12px 14px;border-radius:10px;background:var(--s1);border:1px solid var(--line);color:var(--tx2);font-size:14px;line-height:1.7;cursor:pointer}
+.qbox[hidden]{display:none}
+.qbox .lgd{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center;margin:8px 0 6px}
+.qbox .lgd img{width:30px;height:auto;display:block}
+.qbox .lgd span:first-child{display:flex;justify-content:center;width:30px}
+.qbox .nb{display:block;width:24px;height:18px;border-radius:4px;border:1px solid var(--line2)}
+.qbox b{color:var(--tx);font-weight:500}
+.qbox .lgk{display:flex;align-items:center;gap:10px;margin:2px 0 8px}
+
+/* 會考頁 */
+.qgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:36px 22px;margin-top:34px}
+@media(min-width:720px){.qgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1080px){.qgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.gq{position:relative;border-radius:16px;scroll-margin-top:10px}
+.gq.hit,.card.hit{box-shadow:0 0 0 3px #e9ecf4,0 20px 34px -16px rgba(0,0,0,.95)}
+.gtop{display:grid;width:100%;border:0;padding:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.gtop .pic{cursor:pointer}
+.gh{grid-area:1/1;align-self:end;z-index:1;pointer-events:none;display:flex;align-items:baseline;gap:10px;padding:40px 14px 12px;
+  background:linear-gradient(180deg,transparent 0,rgba(8,10,16,.82) 42%,rgba(8,10,16,.95) 100%);font-size:15px;color:var(--tx2)}
+.gh b{font-family:'Rubik',sans-serif;font-weight:600;font-size:24px;color:#fff;margin-right:3px}
+.gh .g3{margin-left:auto}
+.gh .g3 b{font-size:19px;margin:0 1px 0 4px}
+.gocc{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;width:100%;padding:8px 8px 4px;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.oc{position:relative;display:block;border-radius:7px;overflow:hidden;background:var(--s2);color:var(--tx)}
+.oc img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+.oc .oi{display:block;padding:3px 5px 5px;line-height:1.35}
+.oc .od{display:block;font-family:'Rubik','Noto Sans TC',sans-serif;font-weight:600;font-size:13px;white-space:nowrap}
+.oc .od i,.who .n i{font-style:normal;margin-right:4px}
+.oc .st{font-size:11px;letter-spacing:0}
+.oc .pct{font-size:11px;margin-left:3px}
+.oc.miss .oi{background:rgba(78,14,14,.85)}
+.oc.miss .st b{color:#ffb4a8}
+.gx{display:flex;justify-content:center;width:100%;padding:4px 0 8px;border:0;background:none;color:var(--tx2);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.gx svg{width:14px;height:8px}
+/* 展開（他 10/30：要收得回去，不然越開越多）：上面一條黏住的「收起」，往下滑也看得到（只放這一顆，他說兩顆會混亂）；一次只開一組；手機上一頁也會收起來 */
+.gq.open{grid-column:1/-1;padding:0;background:#10151f;box-shadow:0 0 0 2px var(--ln),0 30px 60px -24px rgba(0,0,0,.95)}
+/* 點開了看不出是哪一組（10/31 他：「展開後太不明顯了」，比了聚光燈／抽屜／整塊包框，選聚光燈）：
+   其他組變暗、點開那塊一圈跟徽章同色的框（沒框的組銀白）、收起那條左邊掛徽章 */
+.ot0{--ln:#c9d1e3}.ot1{--ln:#c7b1e4}.ot2{--ln:#b0d7e4}.ot3{--ln:#e79a68}
+.qgrid.hasopen>.gq:not(.open){opacity:.28;filter:saturate(.4);transition:opacity .2s,filter .2s}
+@media(hover:hover){.qgrid.hasopen>.gq:not(.open):hover{opacity:.7;filter:none}}
+.gbe{height:40px;width:auto;margin:-8px 0 -8px -4px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.8))}
+.gbar{position:sticky;top:0;z-index:8;display:flex;align-items:center;gap:12px;padding:10px 10px 10px 14px;border-radius:16px 16px 0 0;
+  background:rgba(17,21,31,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.08);color:var(--tx2);font-size:15px}
+.gbar b{font-family:'Rubik',sans-serif;font-weight:600;font-size:20px;color:#fff;margin:0 2px}
+.gbar .g3{margin-left:4px}
+.gcl{margin-left:auto;display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;border:1px solid var(--line2);background:var(--s2);color:var(--tx);font-weight:700;font-size:15px;cursor:pointer;white-space:nowrap}
+.gcl svg{width:12px;height:7px}
+.gcards{padding:30px 12px 12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>德德講義</h1>
+  <div class="mode" id="mode"><button data-m="d">每日</button><button data-m="q">老師說這題會考</button><button class="qhelp" id="qhb" aria-label="怎麼看">?</button></div>
+  <div class="qbox" id="qbox" hidden></div>
+  <div class="days" id="days"></div>
+  <div id="list"></div>
+</div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="rb" x1="0" x2="1" y1="0" y2="1">
+  <stop offset="0" stop-color="#7dd3fc"/><stop offset=".35" stop-color="#a5b4fc"/><stop offset=".7" stop-color="#f0abfc"/><stop offset="1" stop-color="#fde68a"/></linearGradient></defs></svg>
+<div class="vw" id="vw" hidden>
+  <button class="vx" id="vx" aria-label="關閉">×</button>
+  <div class="vstage" id="vs"><img id="vimg" alt=""></div>
+</div>
+<script>
+var DATA = [], RANKS = {}, DAY = null;
+var WK = '日一二三四五六';
+var NAMES = {'郭': '郭雪芙', '李': '李毓芬', '東': '東區德少'};   // 他 10/28 取的
+var AC = {'郭': ['#8b7cf6', '139,124,246'], '李': ['#2dd4bf', '45,212,191'], '東': ['#38bdf8', '56,189,248']};   // 丙那一版的三個色
+// 「稽查」開統計頁（10/28：?jc=標籤&d=那天&n=名字）；預覽用旁邊那份副本
+var GV = /netlify\.app$|github\.io$/.test(location.hostname) ? 'https://legend-defense.netlify.app/group-view.html' : '../group-view.html';
+function jcHref(x){
+  return GV + '?jc=' + encodeURIComponent(String(x.opp || '').replace('#', '')) + '&d=' + x.day +
+    (x.name ? '&n=' + encodeURIComponent(x.name) : '') + (GV.charAt(0) === '.' ? '#nogate' : '');
+}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function stars(n){var o='';for(var i=0;i<3;i++)o+=i<n?'<b>★</b>':'★';return o}
+function md(d){var p=d.split('-');return (+p[1])+'/'+(+p[2])}
+
+function days(){
+  var s = {};
+  DATA.forEach(function(x){if(x.img)s[x.day]=1});   // 只放有截圖的（還沒下播、沒開台的場不顯示）
+  return Object.keys(s).sort();
+}
+
+/* 日期（10/30 他選丙：箭頭＋月曆）：平常一行「‹ 10/29 週四 ›」，‹ › 跳到前／後一個有圖的日子；
+   點中間打開月曆（週一開頭），沒開台的日子變暗不能點，選了就收起來 */
+var DCAL = false;
+function dAdd(d, n){var p = d.split('-'); return new Date(Date.UTC(+p[0], +p[1]-1, +p[2]+n)).toISOString().slice(0, 10)}
+function dWd(d){var p = d.split('-'); return new Date(Date.UTC(+p[0], +p[1]-1, +p[2])).getUTCDay()}
+function dMon(d){return dAdd(d, -((dWd(d) + 6) % 7))}
+function dSvg(v, p){return '<svg viewBox="'+v+'" aria-hidden="true"><path d="'+p+'" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'}
+function drawDays(){
+  var ds = days(), el = document.getElementById('days'), i = ds.indexOf(DAY);
+  if (!DAY) { el.innerHTML = ''; return }
+  var h = '<div class="dbar"><button class="darr"'+(i>0?' data-d="'+ds[i-1]+'"':' disabled')+' aria-label="前一天">'+dSvg('0 0 7 12','M6 1L1 6l5 5')+'</button>' +
+    '<button class="dmid'+(DCAL?' open':'')+'" aria-expanded="'+DCAL+'">'+md(DAY)+' 週'+WK[dWd(DAY)]+dSvg('0 0 10 6','M1 1l4 4 4-4')+'</button>' +
+    '<button class="darr"'+(i<ds.length-1?' data-d="'+ds[i+1]+'"':' disabled')+' aria-label="後一天">'+dSvg('0 0 7 12','M1 1l5 5-5 5')+'</button></div>';
+  if (DCAL) {
+    var s = {}, a = dMon(ds[0]), b = dAdd(dMon(ds[ds.length-1]), 6);
+    ds.forEach(function(d){s[d] = 1});
+    h += '<div class="dcal">';
+    for (var k = 0; k < 7; k++) h += '<span>'+'一二三四五六日'.charAt(k)+'</span>';
+    for (var d = a; d <= b; d = dAdd(d, 1)) {
+      var n = +d.split('-')[2];
+      h += '<button'+(d===DAY?' class="on"':'')+(s[d]?' data-d="'+d+'"':' disabled')+'>'+(n===1||d===a?md(d):n)+'</button>';
+    }
+    h += '</div>';
+  }
+  el.innerHTML = h;
+}
+document.getElementById('days').addEventListener('click', function(e){
+  var b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.classList.contains('dmid')) DCAL = !DCAL;
+  else if (b.dataset.d) { DAY = b.dataset.d; if (b.closest('.dcal')) DCAL = false; drawList() }
+  else return;
+  drawDays();
+});
+
+function dayRows(){
+  return DATA.filter(function(x){return x.day===DAY&&x.img}).sort(function(a,b){return a.end<b.end?-1:a.end>b.end?1:a.n-b.n});
+}
+
+function drawList(){
+  var rows = dayRows(), accs = [], h = '';
+  rows.forEach(function(x){if(accs.indexOf(x.acc)<0)accs.push(x.acc)});
+  accs.forEach(function(a){
+    var c = AC[a] || ['#9aa3bb', '154,163,187'], rk = (RANKS[DAY] || {})[a];
+    h += '<section class="acc" style="--ac:'+c[0]+';--acr:'+c[1]+'"><div class="ah"><span class="an">'+esc(NAMES[a]||a)+'</span>' +
+      (rk ? '<span class="rk">#<b>'+rk+'</b></span>' : '') + '</div><div class="grid">';
+    rows.forEach(function(x, i){
+      if(x.acc!==a) return;
+      h += cardHtml(x, false);
+    });
+    h += '</div></section>';
+  });
+  var L = document.getElementById('list');
+  L.innerHTML = h || '<div class="empty">這天沒有資料</div>';
+}
+/* 一張卡（每日、會考頁展開都用這個）：外面一層相框（照這座陣重複出現幾次分級），裡面圖＋字列＋三顆按鈕。
+   點圖、複製陣圖由 #list 統一接（用 data-x／data-cp 的場次代號找） */
+function frameCls(t){return 'lv' + t}
+/* 每一級的徽章（掛在框上緣正中間）：飛龍聯賽／雷龍聯賽／傳奇聯賽 */
+var EMB = {L: ['', 'lg-feilong', 'lg-leilong', 'lg-chuanqi']};
+var LVN = ['沒重複', '2 次', '3～4 次', '5 次以上'];
+function embImg(th, t, cls){var f = EMB[th][t]; return f ? '<img class="' + cls + '" src="img_fr/' + f + '.webp" alt="">' : ''}
+function frameFx(t){return embImg(TH, t, 'emb')}
+var TAGB = '<span class="tagB">必考</span>';
+var TAGK = '<span class="tagK">曾經必考</span>';   // 必考過、這週不熱了（少於 2 次、沒框）才掛，還有框的只看框（10/30 晚上他選甲 冷卻銘牌、規則選丙）；現在是必考就只掛必考
+function accTag(x){var c = AC[x.acc] || ['#9aa3bb']; return '<i style="color:' + c[0] + '">' + esc(x.acc) + '</i>'}
+function cardHtml(x, inGroup, ft){
+  var k = keyOf(x), t = ft == null ? tierOf(x) : ft, boss = t === 3, bk = bkOf(x) && C7[x.g] < 2;
+  var h = '<div class="card ' + frameCls(t) + (x.stars < 3 ? ' miss' : '') + '" data-k="' + esc(k) + '">' + frameFx(t) + '<div class="in">';
+  h += '<button class="pic" data-x="' + esc(k) + '" aria-label="看大圖"><img loading="lazy" src="' + esc(x.img) + '" alt=""></button>' + '';
+  h += '<div class="who">' + (boss ? TAGB : bk ? TAGK : '') + '<span class="n">' + (inGroup ? accTag(x) + md(x.day) : '第 ' + x.n + ' 場') + '</span><span class="nm">' + esc(x.name || x.opp || '') + '</span><span class="st">' + stars(x.stars) + '</span><span class="pct num">' + x.pct + '%</span></div>';
+  /* 10/29 他：儲存拿掉、複製改「複製陣圖」（有人以為是複製陣型連結） */
+  h += '<div class="acts"><button class="go" data-cp="' + esc(k) + '">複製陣圖</button>' +
+    (x.opp ? '<a class="go" href="' + esc(jcHref(x)) + '" target="_blank" rel="noopener">稽查</a>' : '<span></span>') +
+    (x.yt ? '<a class="go" href="' + esc(x.yt) + '" target="_blank" rel="noopener">看老師實戰</a>' : '<span></span>') + '</div>';
+  return h + '</div>' + '' + '</div>';
+}
+
+/* ---------- 分享用的圖：只有陣型截圖（他 10/29：底下不要掛資訊）。轉成 canvas 才能存 jpg、複製 png ---------- */
+function ddCompose(x){
+  var img = new Image();
+  return new Promise(function(ok, no){img.onload=ok; img.onerror=no; img.src=x.img}).then(function(){
+    var c = document.createElement('canvas');
+    c.width = img.naturalWidth; c.height = img.naturalHeight;
+    c.getContext('2d').drawImage(img, 0, 0);
+    return c;
+  });
+}
+/* 網址 #<日>_<號>_<時間>（統計頁稽查點陣圖過來的，10/29）：切到那天、捲到那張卡、亮一下 */
+function ddJump(k){
+  var x = k && DATA.filter(function(i){return i.img === 'img/' + k + '.webp'})[0];
+  if (!x) return;
+  if (x.day !== DAY) { DAY = x.day; drawDays(); drawList() }
+  var c = document.querySelector('.card[data-k="' + k.replace(/"/g, '') + '"]'); if (!c) return;
+  c.scrollIntoView({block: 'center'}); c.classList.add('hit');
+  setTimeout(function(){c.classList.remove('hit')}, 2600);
+}
+
+/* ---------- 老師說這題會考（10/30）：同一座陣最近 7 天出現兩次以上的（10/30 晚上從 28 天改），一組一塊；必考過的排後面 ----------
+   g＝第幾組（Mac mini 比對陣圖算的，照出現次數多→少排好）、rep＝那一組拉最遠的那張（當封面）
+   點一組＝原地展開每一次的大卡（他 10/30：要能點開確認有沒有抓錯）；一次只開一組，上面黏一條「收起」、最底下再一顆，
+   手機上一頁也會收起來（展開時網址換成 #q3，收起換回 #q）。#q3 從外面連進來＝直接展開第 3 組 */
+var MODE = 'd', GRP = {}, GORD = [], BYK = {}, OPENG = null, LASTG = null;
+/* 10/30 晚上他定：框只算最近 7 天（「現在熱不熱」，同一組每一張同一種框）；必考過的組（bk，Mac mini 記的）不熱了也掛「曾經必考」 */
+var WIN = 7, TODAY = null, C7 = {}, BKG = {};
+function inWin(x){return x.day > dAdd(TODAY, -WIN) && x.day <= TODAY}
+var TH = 'L';   // 框的主題：他 10/30 選甲 聯賽階級
+function keyOf(x){return x.img.slice(4, -5)}
+function groupUp(){
+  GRP = {}; GORD = []; BYK = {}; C7 = {}; BKG = {};
+  var last = {};
+  DATA.forEach(function(x){
+    if (!x.img) return;
+    BYK[keyOf(x)] = x;
+    if (x.g) (GRP[x.g] = GRP[x.g] || []).push(x);
+  });
+  Object.keys(GRP).forEach(function(g){
+    var L = GRP[g];
+    L.sort(function(a, b){return a.end < b.end ? -1 : a.end > b.end ? 1 : 0});
+    C7[g] = L.filter(inWin).length; BKG[g] = L.some(function(x){return x.bk}); last[g] = L[L.length - 1].end;
+    if (C7[g] >= 2 || BKG[g]) GORD.push(+g);
+  });
+  /* 最近 7 天還熱的在前（次數多→少、最近→早），曾經必考但這週不熱的排後面（最近→早） */
+  GORD.sort(function(a, b){
+    var ha = C7[a] >= 2, hb = C7[b] >= 2;
+    if (ha !== hb) return ha ? -1 : 1;
+    if (ha && C7[a] !== C7[b]) return C7[b] - C7[a];
+    return last[a] < last[b] ? 1 : last[a] > last[b] ? -1 : a - b;
+  });
+}
+/* 分級（他 10/30 的初步想法）：2 次／3～4 次／5 次以上＝大魔王必考（他說 3～5 和 5 以上，5 先放大魔王） */
+function tierN(n){return n >= 5 ? 3 : n >= 3 ? 2 : n >= 2 ? 1 : 0}
+function tierOf(x){return x.g && C7[x.g] >= 2 ? tierN(C7[x.g]) : 0}
+function bkOf(x){return !!(x.g && BKG[x.g])}
+/* 問號說明（10/30 他：參考統計頁點了才展開的小說明）。文案是草稿，他會改 */
+var HELP = false;
+function drawHelp(){
+  var b = document.getElementById('qhb'), box = document.getElementById('qbox');
+  b.classList.toggle('on', HELP); box.hidden = !HELP;
+  if (!HELP) return;
+  var row = function(t, txt){return '<span>' + (t ? embImg(TH, t, '') : '<i class="nb"></i>') + '</span><span>' + txt + '</span>'};
+  box.innerHTML = '同一座陣最近 7 天被老師打到幾次（比對陣圖算的），次數越多框越高級' +
+    '<div class="lgd">' + row(0, '只出現 1 次：不加框') + row(1, '<b>2 次</b>') + row(2, '<b>3～4 次</b>') + row(3, '<b>5 次以上</b>：必考') + '</div>' +
+    '<div class="lgk">' + TAGK + '<span>必考過的陣，之後不熱了也會留著</span></div>' +
+    '「老師說這題會考」可以看每一座重複的陣';
+}
+document.getElementById('qhb').addEventListener('click', function(){HELP = !HELP; drawHelp()});
+document.getElementById('qbox').addEventListener('click', function(){HELP = false; drawHelp()});
+var CHD = '<svg viewBox="0 0 14 8" aria-hidden="true"><path d="M1 1l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var CHU = '<svg viewBox="0 0 14 8" aria-hidden="true"><path d="M1 7l6-6 6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function drawGroups(){
+  var h = '<div class="qgrid' + (OPENG ? ' hasopen' : '') + '">';
+  GORD.forEach(function(g){
+    var L = GRP[g], rep = L.filter(function(x){return x.rep})[0] || L[0], c = C7[g], hot = c >= 2, t = hot ? tierN(c) : 0;
+    var S = hot ? L.filter(inWin) : L, boss = t === 3, bk = BKG[g] && !hot;
+    var r3 = Math.round(100 * S.filter(function(x){return x.stars >= 3}).length / S.length);
+    var info = (boss ? TAGB : bk ? TAGK : '') + (hot ? '<span><b>' + c + '</b>次</span>' : '') + '<span class="g3">三星率<b>' + r3 + '</b>%</span>';
+    if (g === OPENG) {
+      h += '<section class="gq open ot' + t + '" id="q' + g + '"><div class="gbar">' + embImg(TH, t, 'gbe') + info + '<button class="gcl" data-cl="' + g + '">收起' + CHU + '</button></div><div class="grid gcards">';
+      L.forEach(function(x){h += cardHtml(x, true)});
+      h += '</div></section>';
+      return;
+    }
+    h += '<section class="gq card ' + frameCls(t) + '" id="q' + g + '">' + frameFx(t) + '<div class="in">' + '' +
+      '<button class="gtop" data-gt="' + g + '"><span class="pic"><img loading="lazy" src="' + esc(rep.img) + '" alt=""></span><span class="gh">' + info + '</span></button>' +
+      '<button class="gocc" data-gt="' + g + '" aria-label="展開">';
+    L.forEach(function(x){
+      h += '<span class="oc' + (x.stars < 3 ? ' miss' : '') + (hot && !inWin(x) ? ' old' : '') + '"><img loading="lazy" src="' + esc(x.img) + '" alt="">' +
+        '<span class="oi"><span class="od">' + accTag(x) + md(x.day) + '</span><span class="st">' + stars(x.stars) + '</span><span class="pct num">' + x.pct + '%</span></span></span>';
+    });
+    h += '</button><button class="gx" data-gt="' + g + '" aria-label="展開">' + CHD + '</button></div>' + '' + '</section>';
+  });
+  h += '</div>';
+  document.getElementById('list').innerHTML = GORD.length ? h : '<div class="empty">還沒有重複出現的陣</div>';
+}
+function drawMode(){
+  document.querySelectorAll('#mode button').forEach(function(b){b.classList.toggle('on', b.dataset.m === MODE)});
+  document.getElementById('days').hidden = MODE !== 'd';
+}
+function toGroup(g, flash){
+  var el = document.getElementById('q' + g); if (!el) return;
+  el.scrollIntoView({block: 'start'});
+  if (flash) { el.classList.add('hit'); setTimeout(function(){el.classList.remove('hit')}, 2000) }
+}
+function route(){
+  var k = ''; try { k = decodeURIComponent(location.hash.slice(1)) } catch (e) {}
+  if (/^q\d*$/.test(k)) {
+    var g = k.length > 1 ? +k.slice(1) : null, was = MODE;
+    if (g && !GRP[g]) g = null;
+    var back = OPENG && !g ? OPENG : null;   // 上一頁收起來：捲回剛剛那一組
+    MODE = 'q'; OPENG = g; drawMode(); drawGroups();
+    if (g) { LASTG = g; toGroup(g, was !== 'q') }
+    else if (back) toGroup(back, false);
+    else if (was !== 'q') window.scrollTo(0, 0);
+    return;
+  }
+  OPENG = null;
+  if (MODE !== 'd') { MODE = 'd'; drawMode(); drawDays(); drawList(); window.scrollTo(0, 0) }
+  ddJump(k);
+}
+function closeGroup(g){
+  try { history.replaceState(null, '', '#q') } catch (e) { location.hash = 'q'; return }
+  OPENG = null; drawGroups(); toGroup(g, false);
+}
+window.addEventListener('hashchange', route);
+document.getElementById('mode').addEventListener('click', function(e){
+  var b = e.target.closest('button'); if (!b || !b.dataset.m || b.dataset.m === MODE) return;
+  location.hash = b.dataset.m === 'q' ? 'q' : 'd';
+});
+document.getElementById('list').addEventListener('click', function(e){
+  var b;
+  if ((b = e.target.closest('[data-gt]'))) { location.hash = 'q' + b.dataset.gt; return }
+  if ((b = e.target.closest('[data-cl]'))) { closeGroup(+b.dataset.cl); return }
+  if ((b = e.target.closest('.pic[data-x]'))) { vwOpen(BYK[b.dataset.x]); return }
+  if ((b = e.target.closest('[data-cp]'))) { copyItem(BYK[b.dataset.cp], b); return }
+});
+function blobOf(c, type, q){return new Promise(function(ok){c.toBlob(ok, type, q)})}
+
+/* ---------- 看圖 ---------- */
+var VW = {x: null, s: 1, tx: 0, ty: 0, png: null, jpg: null};
+function vwOpen(x){
+  var v = document.getElementById('vw'), im = document.getElementById('vimg');
+  VW.x = x; VW.s = 1; VW.tx = 0; VW.ty = 0; vwApply();
+  im.src = x.img;
+  v.hidden = false; document.documentElement.classList.add('vwopen');
+  try { history.pushState({dd: 1}, '') } catch (e) {}
+}
+function vwClose(fromPop){
+  var v = document.getElementById('vw'); if (v.hidden) return;
+  v.hidden = true; document.documentElement.classList.remove('vwopen');
+  if (!fromPop) { try { if (history.state && history.state.dd) history.back() } catch (e) {} }
+}
+function vwApply(){
+  document.getElementById('vimg').style.transform = 'translate(' + VW.tx + 'px,' + VW.ty + 'px) scale(' + VW.s + ')';
+}
+function vwClamp(){
+  var st = document.getElementById('vs').getBoundingClientRect(), im = document.getElementById('vimg');
+  var r = im.naturalWidth && im.naturalHeight ? Math.min(st.width / im.naturalWidth, st.height / im.naturalHeight) : 1;
+  var w = (im.naturalWidth || st.width) * r * VW.s, h = (im.naturalHeight || st.height) * r * VW.s;
+  var mx = Math.max(0, (w - st.width) / 2), my = Math.max(0, (h - st.height) / 2);
+  if (VW.s <= 1) { VW.s = 1; VW.tx = 0; VW.ty = 0 }
+  VW.tx = Math.max(-mx, Math.min(mx, VW.tx)); VW.ty = Math.max(-my, Math.min(my, VW.ty));
+}
+function vwZoomAt(px, py, s){   // 以畫面上某一點為中心縮放（px、py 是相對舞台中心）
+  s = Math.max(1, Math.min(5, s));
+  VW.tx = px - (px - VW.tx) * (s / VW.s); VW.ty = py - (py - VW.ty) * (s / VW.s); VW.s = s;
+  vwClamp(); vwApply();
+}
+(function(){
+  var st = document.getElementById('vs'), P = {}, g = null, lastTap = 0, lastXY = null;
+  function rel(e){var r = st.getBoundingClientRect(); return [e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2]}
+  function two(){
+    var k = Object.keys(P), a = P[k[0]], b = P[k[1]];
+    return {d: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, m: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]};
+  }
+  st.addEventListener('pointerdown', function(e){
+    st.setPointerCapture(e.pointerId); P[e.pointerId] = rel(e);
+    var n = Object.keys(P).length;
+    if (n === 2) { var t = two(); g = {k: 2, d: t.d, m: t.m, s: VW.s, tx: VW.tx, ty: VW.ty} }
+    else if (n === 1) g = {k: 1, p: P[e.pointerId], tx: VW.tx, ty: VW.ty, moved: false};
+  });
+  st.addEventListener('pointermove', function(e){
+    if (!P[e.pointerId] || !g) return;
+    P[e.pointerId] = rel(e);
+    if (g.k === 2 && Object.keys(P).length >= 2) {
+      var t = two(), s = Math.max(1, Math.min(5, g.s * t.d / g.d));
+      VW.tx = t.m[0] - (g.m[0] - g.tx) * (s / g.s); VW.ty = t.m[1] - (g.m[1] - g.ty) * (s / g.s); VW.s = s;
+      vwClamp(); vwApply();
+    } else if (g.k === 1) {
+      var q = P[e.pointerId], dx = q[0] - g.p[0], dy = q[1] - g.p[1];
+      if (Math.abs(dx) + Math.abs(dy) > 6) g.moved = true;
+      if (VW.s > 1) { VW.tx = g.tx + dx; VW.ty = g.ty + dy; vwClamp(); vwApply() }
+    }
+  });
+  function up(e){
+    if (!P[e.pointerId]) return;
+    var p = P[e.pointerId]; delete P[e.pointerId];
+    var n = Object.keys(P).length;
+    if (g && g.k === 1 && !g.moved && n === 0) {   // 點兩下：放大 2.5 倍／縮回
+      var now = Date.now();
+      if (now - lastTap < 320 && lastXY && Math.hypot(p[0] - lastXY[0], p[1] - lastXY[1]) < 30) {
+        vwZoomAt(p[0], p[1], VW.s > 1 ? 1 : 2.5); lastTap = 0;
+      } else { lastTap = now; lastXY = p }
+    }
+    if (n === 1) { var k = Object.keys(P)[0]; g = {k: 1, p: P[k], tx: VW.tx, ty: VW.ty, moved: true} }
+    else if (n === 0) g = null;
+  }
+  st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
+  st.addEventListener('wheel', function(e){e.preventDefault(); var p = rel(e); vwZoomAt(p[0], p[1], VW.s * (e.deltaY < 0 ? 1.15 : 1 / 1.15))}, {passive: false});
+  document.getElementById('vx').onclick = function(){vwClose(false)};
+  window.addEventListener('popstate', function(){vwClose(true)});
+  document.addEventListener('keydown', function(e){if (e.key === 'Escape') vwClose(false)});
+  window.addEventListener('resize', function(){if (!document.getElementById('vw').hidden) { vwClamp(); vwApply() }});
+})();
+
+/* 複製陣圖：PNG 進剪貼簿，貼到 Discord（10/29 他：儲存拿掉） */
+function flash(b, t){var o = b.dataset.t || b.textContent; b.dataset.t = o; b.textContent = t; setTimeout(function(){b.textContent = o}, 1600)}
+function copyItem(x, b){
+  if (!(navigator.clipboard && navigator.clipboard.write && window.ClipboardItem)) { flash(b, '不能複製'); return }
+  var p = ddCompose(x).then(function(c){return blobOf(c, 'image/png')});
+  navigator.clipboard.write([new ClipboardItem({'image/png': p})]).then(function(){flash(b, '已複製')}, function(){flash(b, '複製失敗')});
+}
+
+fetch('data.json',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
+  DATA = j.items || []; RANKS = j.ranks || {};
+  var d = days(); DAY = d[d.length-1] || null; TODAY = DAY;
+  groupUp(); drawMode(); drawDays(); drawList(); route();
+}).catch(function(){document.getElementById('list').innerHTML='<div class="empty">讀不到資料</div>'});
+</script>
+</body>
+</html>
